@@ -22,6 +22,9 @@
   "keywords": [
     "⚡️",
     "serverless",
+    "serverless offline",
+    "serverless plugin",
+    "plugin",
     "sls",
     "offline",
     "local",
@@ -34,11 +37,11 @@
     "aws"
   ],
   "bugs": {
-    "url": "https://github.com/codetheweb/stepfunctions-localhost/issues"
+    "url": "https://github.com/codetheweb/serverless-step-functions-local/issues"
   },
-  "homepage": "https://github.com/codetheweb/stepfunctions-localhost#readme",
+  "homepage": "https://github.com/codetheweb/serverless-step-functions-local#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/codetheweb/stepfunctions-localhost.git"
+    "url": "git+https://github.com/codetheweb/serverless-step-functions-local.git"
   }
 }
