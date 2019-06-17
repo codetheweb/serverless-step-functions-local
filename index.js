@@ -2,6 +2,7 @@ const path = require('path');
 const StepFunctionsLocal = require('stepfunctions-localhost');
 const AWS = require('aws-sdk');
 const tcpPortUsed = require('tcp-port-used');
+const chalk = require('chalk');
 
 class ServerlessStepFunctionsLocal {
   constructor(serverless, options) {
@@ -54,6 +55,8 @@ class ServerlessStepFunctionsLocal {
     this.stepfunctionsServer.start({
       account: this.config.accountId.toString(),
       lambdaEndpoint: this.config.lambdaEndpoint
+    }).on('data', data => {
+      console.log(chalk.blue('[Serverless Step Functions Local]'), data.toString());
     });
 
     // Wait for server to start
