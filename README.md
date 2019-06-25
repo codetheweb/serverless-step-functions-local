@@ -39,6 +39,10 @@ custom:
 
 Although not neccessary, it's strongly recomended to add the folder with the downloaded step function executables to `.gitignore`.  By default, this path is `./.step-functions-local`.
 
+The plugin binds to port 8083, this cannot be changed.
+
+It also adds an environment variable for each created state machine that contains the ARN for it.  These variables are prefixed by `OFFLINE_STEP_FUNCTIONS_ARN_`, so the ARN of a state machine named 'WaitMachine', for example could be fetched by reading `OFFLINE_STEP_FUNCTIONS_ARN_WaitMachine`.
+
 ## Options
 
 (These go under `custom.stepFunctionsLocal`.)

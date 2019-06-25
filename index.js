@@ -81,13 +81,18 @@ class ServerlessStepFunctionsLocal {
     this.stateMachines = parsed.stepFunctions.stateMachines;
   }
 
-  createEndpoints() {
-    return Promise.all(Object.keys(this.stateMachines).map(stateMachineName => this.stepfunctionsAPI.createStateMachine({
+  async createEndpoints() {
+    const endpoints = await Promise.all(Object.keys(this.stateMachines).map(stateMachineName => this.stepfunctionsAPI.createStateMachine({
       definition: JSON.stringify(this.stateMachines[stateMachineName].definition),
       name: stateMachineName,
       roleArn: `arn:aws:iam::${this.config.accountId}:role/DummyRole`
     }).promise()
     ));
+
+    // Set environment variables with references to ARNs
+    endpoints.forEach(endpoint => {
+      process.env[`OFFLINE_STEP_FUNCTIONS_ARN_${endpoint.stateMachineArn.split(':')[6]}`] = endpoint.stateMachineArn;
+    });
   }
 }
 
