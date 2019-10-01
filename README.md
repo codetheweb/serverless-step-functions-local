@@ -51,6 +51,7 @@ It also adds an environment variable for each created state machine that contain
 - `region` (required) your AWS region
 - `lambdaEndpoint` (defaults to `http://localhost:4000`) the endpoint for the lambda service
 - `path` (defaults to `./.step-functions-local`) the path to store the downloaded step function executables
+- `TaskResourceMapping` allows for Resource ARNs to be configured differently for local development
 
 ### Full Config Example
 
@@ -72,6 +73,9 @@ custom:
   stepFunctionsLocal:
     accountId: 101010101010
     region: us-east-1
+    TaskResourceMapping:
+      FirstState: arn:aws:lambda:us-east-1:101010101010:function:hello
+      FinalState: arn:aws:lambda:us-east-1:101010101010:function:hello
 
 functions:
   hello:
@@ -86,7 +90,7 @@ stepFunctions:
         States:
           FirstState:
             Type: Task
-            Resource: arn:aws:lambda:us-east-1:101010101010:function:hello
+            Resource: Fn::GetAtt: [hello, Arn]
             Next: wait_using_seconds
           wait_using_seconds:
             Type: Wait
@@ -94,6 +98,6 @@ stepFunctions:
             Next: FinalState
           FinalState:
             Type: Task
-            Resource: arn:aws:lambda:us-east-1:101010101010:function:hello
+            Resource: Fn::GetAtt: [hello, Arn]
             End: true
 ```
