@@ -79,6 +79,28 @@ class ServerlessStepFunctionsLocal {
     const parsed = await this.serverless.yamlParser.parse(configPath);
 
     this.stateMachines = parsed.stepFunctions.stateMachines;
+
+    if (parsed.custom 
+      && parsed.custom.stepFunctionsLocal
+      && parsed.custom.stepFunctionsLocal.TaskResourceMapping) {
+        this.replaceTaskResourceMappings(parsed.stepFunctions.stateMachines, parsed.custom.stepFunctionsLocal.TaskResourceMapping);
+    }
+  }
+
+  /**
+   * Replaces Resource properties with values mapped in TaskResourceMapping
+   */
+  replaceTaskResourceMappings(input, replacements, parentKey) {
+    for(var key in input) {
+      var property = input[key];
+      if (['object', 'array'].indexOf(typeof property) > -1) {
+        if (input['Resource'] && replacements[parentKey]) {
+          input['Resource'] = replacements[parentKey];
+        }
+        // Recursive replacement of nested states
+        this.replaceTaskResourceMappings(property, replacements, key);
+      }
+    }
   }
 
   async createEndpoints() {
