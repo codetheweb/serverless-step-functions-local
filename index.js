@@ -32,7 +32,7 @@ class ServerlessStepFunctionsLocal {
 
     this.stepfunctionsServer = new StepFunctionsLocal(this.config);
 
-    this.stepfunctionsAPI = new AWS.StepFunctions({endpoint: 'http://localhost:8083', region: this.config.region});
+    this.stepfunctionsAPI = new AWS.StepFunctions({endpoint: 'http://localhost:8083'});
 
     this.hooks = {
       'offline:start:init': async () => {
@@ -54,7 +54,8 @@ class ServerlessStepFunctionsLocal {
   async startStepFunctions() {
     this.stepfunctionsServer.start({
       account: this.config.accountId.toString(),
-      lambdaEndpoint: this.config.lambdaEndpoint
+      lambdaEndpoint: this.config.lambdaEndpoint,
+      region: this.config.region
     }).on('data', data => {
       console.log(chalk.blue('[Serverless Step Functions Local]'), data.toString());
     });
@@ -80,10 +81,10 @@ class ServerlessStepFunctionsLocal {
 
     this.stateMachines = parsed.stepFunctions.stateMachines;
 
-    if (parsed.custom 
-      && parsed.custom.stepFunctionsLocal
-      && parsed.custom.stepFunctionsLocal.TaskResourceMapping) {
-        this.replaceTaskResourceMappings(parsed.stepFunctions.stateMachines, parsed.custom.stepFunctionsLocal.TaskResourceMapping);
+    if (parsed.custom &&
+      parsed.custom.stepFunctionsLocal &&
+      parsed.custom.stepFunctionsLocal.TaskResourceMapping) {
+      this.replaceTaskResourceMappings(parsed.stepFunctions.stateMachines, parsed.custom.stepFunctionsLocal.TaskResourceMapping);
     }
   }
 
@@ -91,14 +92,17 @@ class ServerlessStepFunctionsLocal {
    * Replaces Resource properties with values mapped in TaskResourceMapping
    */
   replaceTaskResourceMappings(input, replacements, parentKey) {
-    for(var key in input) {
-      var property = input[key];
-      if (['object', 'array'].indexOf(typeof property) > -1) {
-        if (input['Resource'] && replacements[parentKey]) {
-          input['Resource'] = replacements[parentKey];
+    for (const key in input) {
+      if ({}.hasOwnProperty.call(input, key)) {
+        const property = input[key];
+        if (['object', 'array'].indexOf(typeof property) > -1) {
+          if (input.Resource && replacements[parentKey]) {
+            input.Resource = replacements[parentKey];
+          }
+
+          // Recursive replacement of nested states
+          this.replaceTaskResourceMappings(property, replacements, key);
         }
-        // Recursive replacement of nested states
-        this.replaceTaskResourceMappings(property, replacements, key);
       }
     }
   }
