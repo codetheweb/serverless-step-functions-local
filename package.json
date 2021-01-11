@@ -1,6 +1,6 @@
 {
   "name": "serverless-step-functions-local",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Run AWS step functions offline with Serverless",
   "main": "index.js",
   "scripts": {
