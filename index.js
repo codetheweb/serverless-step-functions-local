@@ -32,7 +32,7 @@ class ServerlessStepFunctionsLocal {
 
     this.stepfunctionsServer = new StepFunctionsLocal(this.config);
 
-    this.stepfunctionsAPI = new AWS.StepFunctions({endpoint: 'http://localhost:8083'});
+    this.stepfunctionsAPI = new AWS.StepFunctions({endpoint: 'http://localhost:8083', region: this.config.region});
 
     this.hooks = {
       'offline:start:init': async () => {
