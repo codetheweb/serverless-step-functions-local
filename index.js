@@ -69,23 +69,54 @@ class ServerlessStepFunctionsLocal {
   }
 
   async getStepFunctionsFromConfig() {
-    const {servicePath} = this.serverless.config;
+    const fromYamlFile = (serverlessYmlPath) =>
+      this.serverless.yamlParser.parse(serverlessYmlPath);
 
-    if (!servicePath) {
-      throw new Error('service path not found');
+    let parsed = {};
+    let parser = null;
+
+    if (!this.serverless.service.stepFunctions) {
+      const { servicePath } = this.serverless.config;
+
+      if (!servicePath) {
+        throw new Error('service path not found');
+      }
+      const serviceFileName =
+        this.options.config ||
+        this.serverless.config.serverless.service.serviceFilename ||
+        'serverless.yml';
+      const configPath = path.join(servicePath, serviceFileName);
+      if (['.js', '.json', '.ts'].includes(path.extname(configPath))) {
+        parser = this.loadFromRequiredFile;
+      } else {
+        parser = fromYamlFile;
+      }
+      parsed = await parser(configPath);
+    } else {
+      parsed = this.serverless.service;
     }
-
-    const configPath = path.join(servicePath, 'serverless.yml');
-
-    const parsed = await this.serverless.yamlParser.parse(configPath);
 
     this.stateMachines = parsed.stepFunctions.stateMachines;
 
     if (parsed.custom &&
       parsed.custom.stepFunctionsLocal &&
-      parsed.custom.stepFunctionsLocal.TaskResourceMapping) {
-      this.replaceTaskResourceMappings(parsed.stepFunctions.stateMachines, parsed.custom.stepFunctionsLocal.TaskResourceMapping);
+      parsed.custom.stepFunctionsLocal.TaskResourceMapping
+    ) {
+      this.replaceTaskResourceMappings(
+        parsed.stepFunctions.stateMachines,
+        parsed.custom.stepFunctionsLocal.TaskResourceMapping
+      );
     }
+  }
+
+  // This function must be ignored since mocking the require system is more
+  // dangerous than beneficial
+  loadFromRequiredFile(serverlessYmlPath) {
+    /* istanbul ignore next */
+    // eslint-disable-next-line global-require, import/no-dynamic-require
+    const fileContents = require(serverlessYmlPath);
+    /* istanbul ignore next */
+    return Promise.resolve(fileContents);
   }
 
   /**
