@@ -35,6 +35,7 @@ custom:
   stepFunctionsLocal:
     accountId: 101010101010
     region: us-east-1
+    # location: './' optional field for where to find serverless.yml - primarily used for typescript
 ```
 
 Although not neccessary, it's strongly recomended to add the folder with the downloaded step function executables to `.gitignore`.  By default, this path is `./.step-functions-local`.

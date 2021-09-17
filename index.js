@@ -32,7 +32,7 @@ class ServerlessStepFunctionsLocal {
 
     this.stepfunctionsServer = new StepFunctionsLocal(this.config);
 
-    this.stepfunctionsAPI = new AWS.StepFunctions({endpoint: 'http://localhost:8083', region: this.config.region});
+    this.stepfunctionsAPI = new AWS.StepFunctions({ endpoint: 'http://localhost:8083', region: this.config.region });
 
     this.hooks = {
       'offline:start:init': async () => {
@@ -76,7 +76,7 @@ class ServerlessStepFunctionsLocal {
     let parser = null;
 
     if (!this.serverless.service.stepFunctions) {
-      const { servicePath } = this.serverless.config;
+      let { servicePath } = this.serverless.config;
 
       if (!servicePath) {
         throw new Error('service path not found');
@@ -85,6 +85,11 @@ class ServerlessStepFunctionsLocal {
         this.options.config ||
         this.serverless.config.serverless.service.serviceFilename ||
         'serverless.yml';
+      if (this.serverless.service.custom &&
+        this.serverless.service.custom.stepFunctionsLocal &&
+        this.serverless.service.custom.stepFunctionsLocal.location) {
+        servicePath = this.serverless.service.custom.stepFunctionsLocal.location
+      }
       const configPath = path.join(servicePath, serviceFileName);
       if (['.js', '.json', '.ts'].includes(path.extname(configPath))) {
         parser = this.loadFromRequiredFile;
