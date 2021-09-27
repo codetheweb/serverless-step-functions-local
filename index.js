@@ -34,6 +34,11 @@ class ServerlessStepFunctionsLocal {
 
     this.stepfunctionsAPI = new AWS.StepFunctions({ endpoint: 'http://localhost:8083', region: this.config.region });
 
+    this.eventBridgeEventsEnabled = this.config.eventBridgeEvents && this.config.eventBridgeEvents.enabled;
+    if (this.eventBridgeEventsEnabled) {
+      this.eventBridgeAPI = new AWS.EventBridge({ endpoint: this.config.eventBridgeEvents.endpoint, region: this.config.region });
+    }
+
     this.hooks = {
       'offline:start:init': async () => {
         await this.installStepFunctions();
@@ -58,6 +63,10 @@ class ServerlessStepFunctionsLocal {
       region: this.config.region
     }).on('data', data => {
       console.log(chalk.blue('[Serverless Step Functions Local]'), data.toString());
+
+      if (this.eventBridgeEventsEnabled) {
+        this.sendEventBridgeEvent(data.toString());
+      }
     });
 
     // Wait for server to start
@@ -155,6 +164,78 @@ class ServerlessStepFunctionsLocal {
     endpoints.forEach(endpoint => {
       process.env[`OFFLINE_STEP_FUNCTIONS_ARN_${endpoint.stateMachineArn.split(':')[6]}`] = endpoint.stateMachineArn;
     });
+  }
+
+  sendEventBridgeEvent(logLine) {
+    let pattern = /(?<date>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.\d{3}): (?<executionArn>.+) : (?<data>.+)/;
+    let match = pattern.exec(logLine);
+
+    if (match !== null) {
+      let eventDate = Date.parse(match.groups.date);
+
+      // Eg. arn:aws:states:us-east-1:101010101010:execution:state-machine-id:execution-id
+      let eventExecutionArn = match.groups.executionArn;
+      let eventExecutionName = eventExecutionArn.split(':').pop();
+      let eventStatemachineArn = eventExecutionArn.replace(':execution:', ':stateMachine:').split(':').slice(0, -1).join(':');
+
+      let eventData = JSON.parse(match.groups.data);
+
+      let eventStatus;
+      let eventStartDate = null;
+      let eventStopDate = null;
+
+      // https://docs.aws.amazon.com/step-functions/latest/dg/cw-events.html
+      // https://docs.aws.amazon.com/step-functions/latest/apireference/API_HistoryEvent.html
+      switch (eventData.Type) {
+        case 'ExecutionAborted':
+          eventStatus = "ABORTED";
+          eventStopDate = eventDate;
+          break;
+        case 'ExecutionFailed':
+          eventStatus = "FAILED";
+          eventStopDate = eventDate;
+          break;
+        case 'ExecutionStarted':
+          eventStatus = "RUNNING";
+          eventStartDate = eventDate;
+          break;
+        case 'ExecutionSucceeded':
+          eventStatus = "SUCCEEDED";
+          eventStopDate = eventDate;
+          break;
+        case 'ExecutionTimedOut':
+          eventStatus = "TIMED_OUT";
+          eventStopDate = eventDate;
+          break;
+      }
+
+      if (eventStatus !== undefined) {
+        let params = {
+          Entries: [
+            {
+              Detail: JSON.stringify({
+                executionArn: eventExecutionArn,
+                stateMachineArn: eventStatemachineArn,
+                name: eventExecutionName,
+                status: eventStatus,
+                startDate: eventStartDate,
+                stopDate: eventStopDate
+              }),
+              DetailType: 'Step Functions Execution Status Change',
+              Resources: [eventExecutionArn],
+              Source: 'aws.states',
+              Time: eventDate
+            }
+          ]
+        };
+
+        this.eventBridgeAPI.putEvents(params, function(err, data) {
+          if (err) {
+            console.error(chalk.bgRed('[Serverless Step Functions Local]'), err, err.stack);
+          }
+        });
+      }
+    }
   }
 }
 

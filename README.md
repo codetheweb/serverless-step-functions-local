@@ -53,6 +53,9 @@ It also adds an environment variable for each created state machine that contain
 - `lambdaEndpoint` (defaults to `http://localhost:4000`) the endpoint for the lambda service
 - `path` (defaults to `./.step-functions-local`) the path to store the downloaded step function executables
 - `TaskResourceMapping` allows for Resource ARNs to be configured differently for local development
+- `eventBridgeEvents` allows sending [EventBridge events](https://docs.aws.amazon.com/step-functions/latest/dg/cw-events.html) on execution status changes
+  - `enabled` (bool) enabled or disable this feature. Disabled by default.
+  - `endpoint` Endpoint for sending events to eg. for [serverless-offline-aws-eventbridge](https://github.com/rubenkaiser/serverless-offline-eventBridge) would be `http://localhost:4010`
 
 ### Full Config Example
 
@@ -77,6 +80,9 @@ custom:
     TaskResourceMapping:
       FirstState: arn:aws:lambda:us-east-1:101010101010:function:hello
       FinalState: arn:aws:lambda:us-east-1:101010101010:function:hello
+    eventBridgeEvents:
+      enabled: true
+      endpoint: http://localhost:4010
 
 functions:
   hello:
