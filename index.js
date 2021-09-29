@@ -3,6 +3,7 @@ const StepFunctionsLocal = require('stepfunctions-localhost');
 const AWS = require('aws-sdk');
 const tcpPortUsed = require('tcp-port-used');
 const chalk = require('chalk');
+const readLine = require('readline');
 
 class ServerlessStepFunctionsLocal {
   constructor(serverless, options) {
@@ -57,15 +58,17 @@ class ServerlessStepFunctionsLocal {
   }
 
   async startStepFunctions() {
-    this.stepfunctionsServer.start({
+    let serverStdout = this.stepfunctionsServer.start({
       account: this.config.accountId.toString(),
       lambdaEndpoint: this.config.lambdaEndpoint,
       region: this.config.region
-    }).on('data', data => {
-      console.log(chalk.blue('[Serverless Step Functions Local]'), data.toString());
+    });
+
+    readLine.createInterface({ input: serverStdout }).on('line', line => {
+      console.log(chalk.blue('[Serverless Step Functions Local]'), line.trim());
 
       if (this.eventBridgeEventsEnabled) {
-        this.sendEventBridgeEvent(data.toString());
+        this.sendEventBridgeEvent(line.trim());
       }
     });
 
