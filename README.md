@@ -83,6 +83,7 @@ custom:
     eventBridgeEvents:
       enabled: true
       endpoint: http://localhost:4010
+  sqsUrl: http://localhost:4566/101010101010/example-queue
 
 functions:
   hello:
@@ -98,6 +99,13 @@ stepFunctions:
           FirstState:
             Type: Task
             Resource: Fn::GetAtt: [hello, Arn]
+            Next: send_message
+          send_message:
+            Type: Task
+            Resource: arn:aws:states:::sqs:sendMessage
+            Parameters:
+              QueueUrl: ${self:custom.sqsUrl}
+              "MessageBody.$": "$"
             Next: wait_using_seconds
           wait_using_seconds:
             Type: Wait
