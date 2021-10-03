@@ -81,38 +81,7 @@ class ServerlessStepFunctionsLocal {
   }
 
   async getStepFunctionsFromConfig() {
-    const fromYamlFile = (serverlessYmlPath) =>
-      this.serverless.yamlParser.parse(serverlessYmlPath);
-
-    let parsed = {};
-    let parser = null;
-
-    if (!this.serverless.service.stepFunctions) {
-      let { servicePath } = this.serverless.config;
-
-      if (!servicePath) {
-        throw new Error('service path not found');
-      }
-      const serviceFileName =
-        this.options.config ||
-        this.serverless.config.serverless.service.serviceFilename ||
-        'serverless.yml';
-      if (this.serverless.service.custom &&
-        this.serverless.service.custom.stepFunctionsLocal &&
-        this.serverless.service.custom.stepFunctionsLocal.location) {
-        servicePath = this.serverless.service.custom.stepFunctionsLocal.location
-      }
-      const configPath = path.join(servicePath, serviceFileName);
-      if (['.js', '.json', '.ts'].includes(path.extname(configPath))) {
-        parser = this.loadFromRequiredFile;
-      } else {
-        parser = fromYamlFile;
-      }
-      parsed = await parser(configPath);
-    } else {
-      parsed = this.serverless.service;
-    }
-
+    const parsed = this.serverless.configurationInput;
     this.stateMachines = parsed.stepFunctions.stateMachines;
 
     if (parsed.custom &&
@@ -124,16 +93,6 @@ class ServerlessStepFunctionsLocal {
         parsed.custom.stepFunctionsLocal.TaskResourceMapping
       );
     }
-  }
-
-  // This function must be ignored since mocking the require system is more
-  // dangerous than beneficial
-  loadFromRequiredFile(serverlessYmlPath) {
-    /* istanbul ignore next */
-    // eslint-disable-next-line global-require, import/no-dynamic-require
-    const fileContents = require(serverlessYmlPath);
-    /* istanbul ignore next */
-    return Promise.resolve(fileContents);
   }
 
   /**
