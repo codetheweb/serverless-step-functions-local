@@ -5,6 +5,7 @@ This is a plugin for the [Serverless Framework](https://serverless.com/).  It us
 
 ## Requirements
 
+- serverless >= v2.32.0
 - The [serverless-offline](https://www.npmjs.com/package/serverless-offline) plugin
 - The [serverless-offline-lambda](https://www.npmjs.com/package/serverless-offline-lambda) plugin
 - The [serverless-step-functions](https://www.npmjs.com/package/serverless-step-functions) plugin
@@ -35,7 +36,6 @@ custom:
   stepFunctionsLocal:
     accountId: 101010101010
     region: us-east-1
-    # location: './' optional field for where to find serverless.yml - primarily used for typescript
 ```
 
 Although not neccessary, it's strongly recomended to add the folder with the downloaded step function executables to `.gitignore`.  By default, this path is `./.step-functions-local`.
@@ -83,6 +83,7 @@ custom:
     eventBridgeEvents:
       enabled: true
       endpoint: http://localhost:4010
+  sqsUrl: http://localhost:4566/101010101010/example-queue
 
 functions:
   hello:
@@ -98,6 +99,13 @@ stepFunctions:
           FirstState:
             Type: Task
             Resource: Fn::GetAtt: [hello, Arn]
+            Next: send_message
+          send_message:
+            Type: Task
+            Resource: arn:aws:states:::sqs:sendMessage
+            Parameters:
+              QueueUrl: ${self:custom.sqsUrl}
+              "MessageBody.$": "$"
             Next: wait_using_seconds
           wait_using_seconds:
             Type: Wait
