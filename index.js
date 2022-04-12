@@ -95,24 +95,28 @@ class ServerlessStepFunctionsLocal {
     }
   }
 
-  /**
+/**
    * Replaces Resource properties with values mapped in TaskResourceMapping
    */
-  replaceTaskResourceMappings(input, replacements, parentKey) {
-    for (const key in input) {
-      if ({}.hasOwnProperty.call(input, key)) {
-        const property = input[key];
-        if (['object', 'array'].indexOf(typeof property) > -1) {
-          if (input.Resource && replacements[parentKey]) {
+ replaceTaskResourceMappings(input, replacements, parentKey) {
+  for (const key in input) {
+    if ({}.hasOwnProperty.call(input, key)) {
+      const property = input[key];
+      if (['object', 'array'].indexOf(typeof property) > -1) {
+        if (input.Resource && replacements[parentKey]) {
+          if (typeof input.Resource === 'string' && input.Resource.indexOf('.waitForTaskToken') > -1) {
+            input.Parameters.FunctionName = replacements[parentKey];
+          } else {
             input.Resource = replacements[parentKey];
           }
-
-          // Recursive replacement of nested states
-          this.replaceTaskResourceMappings(property, replacements, key);
         }
+
+        // Recursive replacement of nested states
+        this.replaceTaskResourceMappings(property, replacements, key);
       }
     }
   }
+}
 
   async createEndpoints() {
     for (const stateMachineName in this.stateMachines) {
