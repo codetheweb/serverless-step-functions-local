@@ -56,7 +56,8 @@ It also adds an environment variable for each created state machine that contain
 - `eventBridgeEvents` allows sending [EventBridge events](https://docs.aws.amazon.com/step-functions/latest/dg/cw-events.html) on execution status changes
   - `enabled` (bool) enabled or disable this feature. Disabled by default.
   - `endpoint` Endpoint for sending events to eg. for [serverless-offline-aws-eventbridge](https://github.com/rubenkaiser/serverless-offline-eventBridge) would be `http://localhost:4010`
-
+- `externalInstance` allows to set a flag to use external instance of local step functions. Disabled by default.
+- `stepFunctionsEndpoint` (defaults to `http://localhost:8083`) the endpoint for the step functions service
 ### Full Config Example
 
 ```yaml
@@ -115,4 +116,16 @@ stepFunctions:
             Type: Task
             Resource: Fn::GetAtt: [hello, Arn]
             End: true
+```
+## Running external instance
+
+To run external step functions local using docker, use this command:
+
+```
+docker run \
+    -p 8083:8083 \
+    -e "AWS_ACCOUNT_ID=101010101010" \
+    -e "AWS_DEFAULT_REGION=us-east-1" \
+    -e "LAMBDA_ENDPOINT=http://localhost:4000" \
+    amazon/aws-stepfunctions-local
 ```
