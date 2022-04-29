@@ -31,9 +31,17 @@ class ServerlessStepFunctionsLocal {
       this.config.path = './.step-functions-local';
     }
 
+    if (!this.config.stepFunctionsEndpoint) {
+      this.config.stepFunctionsEndpoint = 'http://localhost:8083';
+    }
+
+    if (!this.config.externalInstance) {
+      this.config.externalInstance = false;
+    }
+
     this.stepfunctionsServer = new StepFunctionsLocal(this.config);
 
-    this.stepfunctionsAPI = new AWS.StepFunctions({ endpoint: 'http://localhost:8083', region: this.config.region });
+    this.stepfunctionsAPI = new AWS.StepFunctions({ endpoint: this.config.stepFunctionsEndpoint, region: this.config.region });
 
     this.eventBridgeEventsEnabled = this.config.eventBridgeEvents && this.config.eventBridgeEvents.enabled;
     if (this.eventBridgeEventsEnabled) {
@@ -42,13 +50,19 @@ class ServerlessStepFunctionsLocal {
 
     this.hooks = {
       'offline:start:init': async () => {
-        await this.installStepFunctions();
-        await this.startStepFunctions();
+
+        if (!this.config.externalInstance) {
+          await this.installStepFunctions();
+          await this.startStepFunctions();
+        }
+
         await this.getStepFunctionsFromConfig();
         await this.createEndpoints();
       },
       'before:offline:start:end': async () => {
-        await this.stopStepFunctions();
+        if (!this.config.externalInstance) {
+          await this.stopStepFunctions();
+        }
       }
     };
   }

@@ -1,6 +1,6 @@
 {
   "name": "serverless-step-functions-local",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Run AWS step functions offline with Serverless",
   "main": "index.js",
   "scripts": {
@@ -41,11 +41,11 @@
     "aws"
   ],
   "bugs": {
-    "url": "https://github.com/codetheweb/serverless-step-functions-local/issues"
+    "url": "https://github.com/kuba9392/serverless-step-functions-local/issues"
   },
-  "homepage": "https://github.com/codetheweb/serverless-step-functions-local#readme",
+  "homepage": "https://github.com/kuba9392/serverless-step-functions-local#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/codetheweb/serverless-step-functions-local.git"
+    "url": "git+https://github.com/kuba9392/serverless-step-functions-local.git"
   }
 }
