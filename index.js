@@ -1,4 +1,3 @@
-const path = require('path');
 const StepFunctionsLocal = require('stepfunctions-localhost');
 const AWS = require('aws-sdk');
 const tcpPortUsed = require('tcp-port-used');
@@ -9,7 +8,6 @@ class ServerlessStepFunctionsLocal {
   constructor(serverless, options) {
     this.serverless = serverless;
     this.service = serverless.service;
-    this.options = options;
 
     this.log = serverless.cli.log.bind(serverless.cli);
     this.config = (this.service.custom && this.service.custom.stepFunctionsLocal) || {};
