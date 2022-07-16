@@ -1,4 +1,3 @@
-const path = require('path');
 const StepFunctionsLocal = require('stepfunctions-localhost');
 const AWS = require('aws-sdk');
 const tcpPortUsed = require('tcp-port-used');
@@ -9,7 +8,6 @@ class ServerlessStepFunctionsLocal {
   constructor(serverless, options) {
     this.serverless = serverless;
     this.service = serverless.service;
-    this.options = options;
 
     this.log = serverless.cli.log.bind(serverless.cli);
     this.config = (this.service.custom && this.service.custom.stepFunctionsLocal) || {};
@@ -75,7 +73,8 @@ class ServerlessStepFunctionsLocal {
     let serverStdout = this.stepfunctionsServer.start({
       account: this.config.accountId.toString(),
       lambdaEndpoint: this.config.lambdaEndpoint,
-      region: this.config.region
+      region: this.config.region,
+      waitTimeScale: this.config.waitTimeScale,
     });
 
     readLine.createInterface({ input: serverStdout }).on('line', line => {
@@ -136,7 +135,7 @@ class ServerlessStepFunctionsLocal {
     for (const stateMachineName in this.stateMachines) {
       const endpoint = await this.stepfunctionsAPI.createStateMachine({
         definition: JSON.stringify(this.stateMachines[stateMachineName].definition),
-        name: stateMachineName,
+        name: this.stateMachines[stateMachineName].name || stateMachineName,
         roleArn: `arn:aws:iam::${this.config.accountId}:role/DummyRole`
       }).promise();
 
