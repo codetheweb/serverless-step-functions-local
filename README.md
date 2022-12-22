@@ -5,7 +5,7 @@ This is a plugin for the [Serverless Framework](https://serverless.com/).  It us
 
 ## Requirements
 
-- serverless >= v2.32.0
+- serverless >= v3.0.0
 - The [serverless-offline](https://www.npmjs.com/package/serverless-offline) plugin
 - The [serverless-offline-lambda](https://www.npmjs.com/package/serverless-offline-lambda) plugin
 - The [serverless-step-functions](https://www.npmjs.com/package/serverless-step-functions) plugin
@@ -41,6 +41,7 @@ custom:
 Although not neccessary, it's strongly recomended to add the folder with the downloaded step function executables to `.gitignore`.  By default, this path is `./.step-functions-local`.
 
 The plugin binds to port 8083, this cannot be changed.
+The plugin binds to port 8083, since [stepfunctions-localhost](https://www.npmjs.com/package/stepfunctions-localhost) doesn't support dynamic port, it can't be changed.
 
 It also adds an environment variable for each created state machine that contains the ARN for it.  These variables are prefixed by `OFFLINE_STEP_FUNCTIONS_ARN_`, so the ARN of a state machine named 'WaitMachine', for example could be fetched by reading `OFFLINE_STEP_FUNCTIONS_ARN_WaitMachine`.
 
@@ -50,9 +51,9 @@ It also adds an environment variable for each created state machine that contain
 
 - `accountId` (required) your AWS account ID
 - `region` (required) your AWS region
-- `lambdaEndpoint` (defaults to `http://localhost:4000`) the endpoint for the lambda service
+- `lambdaEndpoint` (defaults to `http://localhost:3000` from serverless offline) the endpoint for the lambda service. This plugin tries to use the configured value from serverless-offline
 - `path` (defaults to `./.step-functions-local`) the path to store the downloaded step function executables
-- `TaskResourceMapping` allows for Resource ARNs to be configured differently for local development
+- `TaskResourceMapping` allows for Resource ARNs to be configured differently for local development. (Serverless 3.x prefixes the lambda function names with the stack name and the stage)
 - `eventBridgeEvents` allows sending [EventBridge events](https://docs.aws.amazon.com/step-functions/latest/dg/cw-events.html) on execution status changes
   - `enabled` (bool) enabled or disable this feature. Disabled by default.
   - `endpoint` Endpoint for sending events to eg. for [serverless-offline-aws-eventbridge](https://github.com/rubenkaiser/serverless-offline-eventBridge) would be `http://localhost:4010`
@@ -71,7 +72,7 @@ plugins:
 
 provider:
   name: aws
-  runtime: nodejs10.x
+  runtime: nodejs14.x # supported nodejs versions: https://docs.aws.amazon.com/lambda/latest/dg/lambda-runtimes.html
 
 
 custom:
@@ -79,8 +80,8 @@ custom:
     accountId: 101010101010
     region: us-east-1
     TaskResourceMapping:
-      FirstState: arn:aws:lambda:us-east-1:101010101010:function:hello
-      FinalState: arn:aws:lambda:us-east-1:101010101010:function:hello
+      FirstState: arn:aws:lambda:us-east-1:101010101010:function:${self:service}-${opt:stage, self:provider.stage}-hello
+      FinalState: arn:aws:lambda:us-east-1:101010101010:function:${self:service}-${opt:stage, self:provider.stage}-hello
     eventBridgeEvents:
       enabled: true
       endpoint: http://localhost:4010
