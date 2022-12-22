@@ -118,6 +118,15 @@ stepFunctions:
             Resource: Fn::GetAtt: [hello, Arn]
             End: true
 ```
+
+## Start your local step functions
+
+To run your local step function, use this command:
+
+```
+aws stepfunctions --endpoint-url http://localhost:8083 start-execution --state-machine-arn arn:aws:states:us-east-1:101010101010:stateMachine:servicename-stagename-hello --input '{"hello": ["world"]}'
+```
+
 ## Running external instance
 
 To run external step functions local using docker, use this command:
