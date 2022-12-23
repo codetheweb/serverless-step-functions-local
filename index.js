@@ -162,6 +162,7 @@ class ServerlessStepFunctionsLocal {
     for (const stateMachineName in this.stateMachines) {
       const endpoint = await this.stepfunctionsAPI.createStateMachine({
         definition: JSON.stringify(this.stateMachines[stateMachineName].definition),
+        type: this.stateMachines[stateMachineName].type || "STANDARD",
         name: this.stateMachines[stateMachineName].name || stateMachineName,
         roleArn: `arn:aws:iam::${this.config.accountId}:role/DummyRole`
       }).promise();
