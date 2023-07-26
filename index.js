@@ -11,6 +11,8 @@ class ServerlessStepFunctionsLocal {
 
     this.log = serverless.cli.log.bind(serverless.cli);
     this.config = (this.service.custom && this.service.custom.stepFunctionsLocal) || {};
+    this.serverlessOfflineConfig = (this.service.custom && 'serverless-offline' in this.service.custom ) ? this.service.custom['serverless-offline'] : {}
+    this.usedEndpointFromServerlessOffline = false;
 
     // Check config
     if (!this.config.accountId) {
@@ -22,7 +24,28 @@ class ServerlessStepFunctionsLocal {
     }
 
     if (!this.config.lambdaEndpoint) {
-      this.config.lambdaEndpoint = 'http://localhost:4000';
+      if (this.serverlessOfflineConfig) {
+        let port = 3000; // default serverless offline port
+        let httpProtocol = 'http'; // default serverless offline protocol
+        let host = 'localhost'; // default serverless offline host
+
+        if ('httpPort' in this.serverlessOfflineConfig) {
+          port = this.serverlessOfflineConfig['httpPort'];
+        }
+
+        if ('host' in this.serverlessOfflineConfig) {
+          host = this.serverlessOfflineConfig['host']
+        }
+
+        if ('httpsProtocol' in this.serverlessOfflineConfig) {
+          httpProtocol = 'https'
+        }
+
+        this.config.lambdaEndpoint = `${httpProtocol}://${host}:${port}`;
+        this.usedEndpointFromServerlessOffline = true;
+      } else {
+        this.config.lambdaEndpoint = 'http://localhost:4000';
+      }
     }
 
     if (!this.config.path) {
@@ -76,6 +99,10 @@ class ServerlessStepFunctionsLocal {
       region: this.config.region,
       waitTimeScale: this.config.waitTimeScale,
     });
+
+    if (this.usedEndpointFromServerlessOffline) {
+      console.log(chalk.yellow('[Serverless Step Functions Local] Found Serverless-Offline configuration. Setting lambdaEndpoint to: ', this.config.lambdaEndpoint));
+    }
 
     readLine.createInterface({ input: serverStdout }).on('line', line => {
       console.log(chalk.blue('[Serverless Step Functions Local]'), line.trim());
@@ -135,6 +162,7 @@ class ServerlessStepFunctionsLocal {
     for (const stateMachineName in this.stateMachines) {
       const endpoint = await this.stepfunctionsAPI.createStateMachine({
         definition: JSON.stringify(this.stateMachines[stateMachineName].definition),
+        type: this.stateMachines[stateMachineName].type || "STANDARD",
         name: this.stateMachines[stateMachineName].name || stateMachineName,
         roleArn: `arn:aws:iam::${this.config.accountId}:role/DummyRole`
       }).promise();
