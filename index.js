@@ -150,6 +150,10 @@ class ServerlessStepFunctionsLocal {
             input.Resource = replacements[parentKey];
           }
         }
+        // Add support for StepFunction
+        if (input.Parameters && input.Parameters.StateMachineArn && input.Parameters.StateMachineArn['Fn::GetAtt'])  {
+          input.Parameters.StateMachineArn = replacements[input.Parameters.StateMachineArn['Fn::GetAtt'][0]]
+        }
 
         // Recursive replacement of nested states
         this.replaceTaskResourceMappings(property, replacements, key);
