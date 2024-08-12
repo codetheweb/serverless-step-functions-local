@@ -98,6 +98,7 @@ class ServerlessStepFunctionsLocal {
       lambdaEndpoint: this.config.lambdaEndpoint,
       region: this.config.region,
       waitTimeScale: this.config.waitTimeScale,
+      stepFunctionsEndpoint: this.config.stepFunctionsEndpoint,
     });
 
     if (this.usedEndpointFromServerlessOffline) {
