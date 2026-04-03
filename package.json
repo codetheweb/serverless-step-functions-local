@@ -12,7 +12,7 @@
     "aws-sdk": "^2.476.0",
     "chalk": "^2.4.2",
     "stepfunctions-localhost": "^0.2.0",
-    "tcp-port-used": "^1.0.1"
+    "is-tcp-port-used": "^1.0.0"
   },
   "peerDependencies": {
     "serverless": "^3.0.0"

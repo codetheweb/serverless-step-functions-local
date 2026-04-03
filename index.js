@@ -1,6 +1,6 @@
 const StepFunctionsLocal = require('stepfunctions-localhost');
 const AWS = require('aws-sdk');
-const tcpPortUsed = require('tcp-port-used');
+const { waitUntilUsed } = require('is-tcp-port-used');
 const chalk = require('chalk');
 const readLine = require('readline');
 
@@ -113,7 +113,7 @@ class ServerlessStepFunctionsLocal {
     });
 
     // Wait for server to start
-    await tcpPortUsed.waitUntilUsed(8083, 200, 10000);
+    await waitUntilUsed({ port: 8083, retryInterval: 200, maxWait: 10000 });
   }
 
   stopStepFunctions() {
